@@ -1,6 +1,6 @@
-# TASK 10 — Deploy (1/3): Preparar a VPS e as conexões SSH
+# TASK 11 — Deploy (1/3): Preparar a VPS e as conexões SSH
 
-Primeira das 3 fases de deploy na **VPS da Hostinger**. Aqui preparamos o servidor (requisitos) e as conexões SSH **PC → VPS** e **VPS → GitHub**. Execute após a **Task 9** (código já na branch `main` do GitHub).
+Primeira das 3 fases de deploy na **VPS da Hostinger**. Prepara o servidor (requisitos) e as conexões SSH **PC → VPS** e **VPS → GitHub**. Execute após a **Task 10** (código já na branch `main` do GitHub).
 
 > **Credenciais:** seções **SERVIDOR / VPS** e **GIT / GITHUB** do `CREDENCIAIS.txt`
 > (`VPS_SSH_USER`, `VPS_IP`, `VPS_SSH_PASSWORD`, `VPS_DOMAIN`, `VPS_LINUX_USER`, `VPS_PROJECT_PATH`, `VPS_PHP_BIN`, `SSH_KEY_EMAIL`, `REPOSITORIO_GIT_SSH`, `DEPLOY_BRANCH`).
@@ -22,48 +22,52 @@ Exibir o conteúdo da chave pública:
 ```
 cat ~/.ssh/id_rsa.pub
 ```
-Acessar o servidor com SSH (`VPS_SSH_USER`@`VPS_IP`), informando a `VPS_SSH_PASSWORD` quando pedido:
+
+Adicionar a chave pública à VPS — **duas formas** (use qualquer uma):
+
+**Forma A — via hPanel da Hostinger** (recomendado):
+- hPanel → VPS → SSH Keys → Add SSH Key → cole o conteúdo de `id_rsa.pub`
+
+**Forma B — via terminal** (se já tiver acesso com senha):
+```
+ssh root@76.13.239.186
+mkdir -p ~/.ssh && chmod 700 ~/.ssh
+echo "CONTEÚDO_DO_id_rsa.pub" >> ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys
+```
+
+Testar a conexão (deve conectar sem pedir senha, apenas a passphrase da chave se houver):
 ```
 ssh root@76.13.239.186
 ```
-Digite `yes` quando solicitado:
-```
-Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
-```
-Acessar o diretório do projeto (`VPS_PROJECT_PATH`) e listar:
-```
-cd /home/celke-copa/htdocs/copa.celke.uno
-ls
-```
-Se o diretório já tiver arquivos de um teste anterior, limpar (cuidado — apaga tudo, inclusive ocultos):
-```
-rm -rf /home/celke-copa/htdocs/copa.celke.uno/{*,.*}
-```
+
+> 💡 **VS Code:** instale a extensão *Remote – SSH*, adicione o host `root@76.13.239.186` e conecte pelo painel SSH. Facilita a edição de arquivos na VPS.
 
 ---
 
 ## 2. Instalar os requisitos na VPS
 
 Confira/instale (use **PHP 8.3** e **Node.js 24** — as MESMAS versões usadas para criar o projeto localmente):
-- **PHP 8.3** — `php -v`
+- **PHP 8.3** — `php8.3 -v`
 - **MySQL 8.0+** — `mysql --version`
 - **Composer** — `composer --version`
 - **Git** — `git -v`
 - **Node.js 24** — `node -v`
-- **npm** — `npm -v` (vem junto com o Node.js; usado na Task 11 para `npm install`/`npm run build`)
+- **npm** — `npm -v`
 
-**Instalar o Node.js 24 SOMENTE se necessário** (se `node -v`/`npm -v` falharem ou `node -v` não retornar uma versão `24.x`). O **npm é instalado automaticamente** junto com o Node.js:
+**Instalar o Node.js 24 SOMENTE se necessário:**
 ```
 sudo apt update
 curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash -
 sudo apt install -y nodejs
 ```
-Confirme depois da instalação:
+Confirme depois:
 ```
 node -v
 npm -v
 ```
-Instalar o **Supervisor** (usado na Task 12 para manter a fila rodando):
+
+Instalar o **Supervisor** (usado na Task 13 para manter a fila rodando):
 ```
 sudo apt update
 sudo apt install -y supervisor
@@ -81,28 +85,24 @@ Imprimir a chave pública gerada:
 ```
 cat ~/.ssh/id_rsa.pub
 ```
-- No GitHub: **Settings** do repositório (Deploy keys) ou da conta (**SSH and GPG keys**) → **New SSH key** → cole a chave pública e salve.
+- No GitHub: **Settings** do repositório → **Deploy keys** → **Add deploy key** → cole a chave pública e marque *Allow write access* → salve.
 
 Testar a conexão com o GitHub:
 ```
 ssh -T git@github.com
 ```
-Se aparecer "The authenticity of host 'github.com ...' can't be established", digite `yes` para gravar no `known_hosts`:
+Se aparecer "The authenticity of host 'github.com ...' can't be established", digite `yes`:
 ```
 Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
-```
-Testar novamente:
-```
-ssh -T git@github.com
 ```
 ✅ Sucesso esperado: `Hi <usuario>! You've successfully authenticated, but GitHub does not provide shell access.`
 
 ---
 
-## Entregáveis da Task 10
+## Entregáveis da Task 11
 
 1. SSH PC → VPS funcionando (acesso ao `VPS_PROJECT_PATH`).
 2. Requisitos instalados na VPS (PHP 8.3, MySQL, Composer, Git, Node.js 24, Supervisor).
 3. SSH VPS → GitHub validado (`ssh -T git@github.com` autenticando).
 
-> Concluída a Task 10, prossiga para a **Task 11 (deploy da aplicação)**.
+> Concluída a Task 11, prossiga para a **Task 12 (deploy da aplicação)**.

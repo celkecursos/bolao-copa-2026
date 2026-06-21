@@ -1,9 +1,11 @@
-# TASK 11 — Deploy (2/3): Publicar a aplicação na VPS
+# TASK 12 — Deploy (2/3): Publicar a aplicação na VPS
 
-Segunda fase de deploy. Clona o projeto da branch `main` via SSH, instala dependências, cria o `.env` de **produção** e roda as migrations. Requer a **Task 10** concluída.
+Segunda fase de deploy. Clona o projeto da branch `main` via SSH, instala dependências, cria o `.env` de **produção** e roda as migrations + seed de produção (jogos reais via API). Requer a **Task 11** concluída.
 
 > **Credenciais:** seções **COMUM** + **PRODUÇÃO** (`PROD_*`) e **SERVIDOR/VPS** + **GIT** do `CREDENCIAIS.txt`.
-> ⚠️ **Use SOMENTE as credenciais de PRODUÇÃO (`PROD_*`).** No `.env` da VPS as chaves vão **sem o prefixo** (ex.: `PROD_DB_PASSWORD` → `DB_PASSWORD`, `PROD_APP_URL` → `APP_URL`, `PROD_MAIL_*` → `MAIL_*`).
+> ⚠️ **Use SOMENTE as credenciais de PRODUÇÃO (`PROD_*`).** No `.env` da VPS as chaves vão **sem o prefixo** (ex.: `PROD_DB_PASSWORD` → `DB_PASSWORD`).
+>
+> ⚠️ **Senhas com `#`:** no `.env`, valores com `#` devem estar entre aspas duplas, caso contrário o `#` é tratado como comentário e a senha fica truncada. Exemplo: `DB_PASSWORD="58s6f2a8#R4s3v82e"`.
 
 ---
 
@@ -14,10 +16,17 @@ Acessar a VPS e ir ao diretório do projeto (`VPS_PROJECT_PATH`):
 ssh root@76.13.239.186
 cd /home/celke-copa/htdocs/copa.celke.uno
 ```
+
+Se o diretório já tiver arquivos de um teste anterior, limpar (cuidado — apaga tudo):
+```
+rm -rf /home/celke-copa/htdocs/copa.celke.uno/{*,.*} 2>/dev/null; ls -la
+```
+
 Clonar a branch de produção (`DEPLOY_BRANCH=main`) usando a URL **SSH** (`REPOSITORIO_GIT_SSH`):
 ```
-git clone -b main git@github.com:usuario-ou-org/repositorio.git .
+git clone -b main git@github.com:celkecursos/bolao-copa-2026.git .
 ```
+
 Marcar o diretório como seguro para o Git:
 ```
 git config --global --add safe.directory /home/celke-copa/htdocs/copa.celke.uno
@@ -31,6 +40,7 @@ git config --global --add safe.directory /home/celke-copa/htdocs/copa.celke.uno
 cp .env.example .env
 nano .env
 ```
+
 Preencher a partir do `CREDENCIAIS.txt` (**COMUM + PRODUÇÃO**). Valores-chave:
 ```
 APP_NAME="Bolão Copa 2026"
@@ -44,26 +54,34 @@ DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_DATABASE=copa
-DB_USERNAME=<PROD_DB_USERNAME>
-DB_PASSWORD=<PROD_DB_PASSWORD>
+DB_USERNAME=copa
+DB_PASSWORD="58s6f2a8#R4s3v82e"
 
 SESSION_DRIVER=database
 QUEUE_CONNECTION=database
 
+# Super-admin criado pelo seeder (RolesAndPermissionsSeeder)
+SEED_SUPERADMIN_NAME="Super Admin"
+SEED_SUPERADMIN_EMAIL=cesar@celke.com.br
+SEED_SUPERADMIN_PASSWORD="123456A#b"
+
+# API de resultados — football-data.org
 FOOTBALL_DATA_TOKEN=<FOOTBALL_DATA_TOKEN>
 
-# E-mail iAgente (produção)
+# E-mail iAgente (produção) — use MAIL_SCHEME, não MAIL_ENCRYPTION (Laravel 11+)
 MAIL_MAILER=smtp
+MAIL_SCHEME=ssl
 MAIL_HOST=<PROD_MAIL_HOST>
-MAIL_PORT=<PROD_MAIL_PORT>
+MAIL_PORT=587
 MAIL_USERNAME=<PROD_MAIL_USERNAME>
-MAIL_PASSWORD=<PROD_MAIL_PASSWORD>
-MAIL_ENCRYPTION=<PROD_MAIL_ENCRYPTION>
+MAIL_PASSWORD="<PROD_MAIL_PASSWORD>"
 MAIL_FROM_ADDRESS=<PROD_MAIL_FROM_ADDRESS>
 MAIL_FROM_NAME="Bolão Copa 2026"
 ```
+
 > Salvar no nano: `Ctrl + O`, Enter; sair: `Ctrl + X`.
-> 💡 Dica de teste: se quiser validar o carregamento antes do banco, comente as linhas `DB_*` e use `SESSION_DRIVER=file`; depois reverta para `database`.
+>
+> ⚠️ **Laravel 11+** usa `MAIL_SCHEME=ssl` em vez de `MAIL_ENCRYPTION=ssl`. A chave `MAIL_ENCRYPTION` não tem efeito nesta versão.
 
 ---
 
@@ -73,14 +91,10 @@ Dependências do PHP (otimizado para produção):
 ```
 composer install --no-dev --optimize-autoloader
 ```
+
 Dependências do Node.js e build de produção (**não** use `npm run dev` no servidor):
 ```
 npm install
-npm run build
-```
-Se aparecer "sh: 1: vite: not found", confirme o Node.js (Task 10) e:
-```
-npx vite --version
 npm run build
 ```
 
@@ -88,20 +102,32 @@ npm run build
 
 ## 4. Banco de dados, chave e permissões
 
-- Crie a base de dados no MySQL conforme `PROD_DB_DATABASE`/usuário (se ainda não existir).
-
 Gerar a chave da aplicação:
 ```
-php artisan key:generate
+/usr/bin/php8.3 artisan key:generate
 ```
-Executar as migrations e os seeds em produção (use `--force`; **não** use `migrate:fresh` em produção com dados reais):
+
+Executar as migrations:
 ```
-php artisan migrate --force
-php artisan db:seed --force
+/usr/bin/php8.3 artisan migrate --force
 ```
+
+Executar o **seed de produção** (importa jogos reais da API + cria palpites demo):
+```
+/usr/bin/php8.3 artisan db:seed --class=ProductionSeeder --force
+```
+
+> O `ProductionSeeder` executa em sequência:
+> 1. `RolesAndPermissionsSeeder` — roles, permissões e super-admin (via `SEED_SUPERADMIN_*` do `.env`)
+> 2. `worldcup:sync-matches` — importa times e jogos reais da API football-data.org
+> 3. `DemoBetsSeeder` — 12 usuários demo com palpites nos jogos reais
+>
+> **Não use `WorldCup2026Seeder` em produção** — ele insere jogos fictícios. Em desenvolvimento use `php artisan migrate:fresh --seed` (chama `DatabaseSeeder`, que inclui o seeder fictício).
+
 Ajustar a propriedade do diretório (`VPS_LINUX_USER`):
 ```
-sudo chown -R celke-copa:celke-copa /home/celke-copa/htdocs/copa.celke.uno
+chown -R celke-copa:celke-copa /home/celke-copa/htdocs/copa.celke.uno
+chmod -R 775 storage bootstrap/cache
 ```
 
 ---
@@ -109,22 +135,43 @@ sudo chown -R celke-copa:celke-copa /home/celke-copa/htdocs/copa.celke.uno
 ## 5. Cache de produção e Nginx
 
 ```
-php artisan config:clear
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-sudo systemctl restart nginx
+/usr/bin/php8.3 artisan config:cache
+/usr/bin/php8.3 artisan route:cache
+/usr/bin/php8.3 artisan view:cache
+systemctl restart nginx
 ```
+
 Acessar e validar: `https://copa.celke.uno`
 
 ---
 
-## Entregáveis da Task 11
+## Observações de troubleshooting
+
+**MySQL: Access denied para o usuário da aplicação**
+Se ocorrer `Access denied for user 'copa'@'localhost'` mesmo com `DB_HOST=127.0.0.1`, o PHP pode estar usando socket Unix em vez de TCP. Solução: adicionar `skip-name-resolve` ao MySQL e reiniciar:
+```
+echo '[mysqld]
+skip-name-resolve' >> /etc/mysql/mysql.conf.d/mysqld.cnf
+systemctl restart mysql
+```
+
+**Token da API inválido**
+Se `worldcup:sync-matches` retornar "Nenhuma partida retornada", o token pode estar inválido ou expirado. Verifique em football-data.org → My Account → API Token, atualize no `.env` e limpe o cache:
+```
+/usr/bin/php8.3 artisan config:clear
+/usr/bin/php8.3 artisan worldcup:sync-matches
+/usr/bin/php8.3 artisan config:cache
+```
+
+---
+
+## Entregáveis da Task 12
 
 1. Projeto clonado da branch `main` na VPS.
 2. `.env` de **produção** preenchido com as credenciais `PROD_*` (diferente do dev).
 3. Dependências instaladas + build gerada.
-4. `APP_KEY` gerada, migrations + seed executados, permissões ajustadas.
-5. Site acessível em `https://copa.celke.uno`.
+4. `APP_KEY` gerada, migrations executadas, `ProductionSeeder` rodado (jogos reais + palpites demo).
+5. Permissões ajustadas, cache gerado, nginx reiniciado.
+6. Site acessível em `https://copa.celke.uno`.
 
-> Concluída a Task 11, prossiga para a **Task 12 (cron, filas e atualizações)**.
+> Concluída a Task 12, prossiga para a **Task 13 (cron, filas e atualizações)**.
