@@ -1,0 +1,93 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        --br-green:      #009C3B;
+        --br-green-dark: #007A2F;
+        --br-yellow:     #FFDF00;
+        --br-blue:       #002776;
+        --br-navy:       #001a50;
+        --br-deep:       #001233;
+    }
+}
+
+@layer components {
+    /* ── Cards ──────────────────────────────────────────── */
+    .br-card {
+        @apply bg-white dark:bg-[#001E40] border-t-4 border-[#009C3B] shadow-sm rounded-lg;
+    }
+
+    /* ── Cabeçalhos de seção dentro dos cards ─────────── */
+    .br-section-title {
+        @apply font-semibold text-lg text-[#002776] dark:text-[#FFDF00];
+    }
+    .br-subsection-title {
+        @apply font-semibold text-sm text-[#009C3B] dark:text-[#FFDF00];
+    }
+
+    /* ── Cabeçalho de tabela ──────────────────────────── */
+    .br-thead tr {
+        @apply bg-[#009C3B] dark:bg-[#002776] text-white dark:text-[#FFDF00];
+    }
+    .br-thead th {
+        @apply px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide;
+    }
+
+    /* ── Linhas da tabela ─────────────────────────────── */
+    .br-tbody tr {
+        @apply border-b border-[#009C3B]/10 dark:border-[#003A8C] hover:bg-[#F0FAF4] dark:hover:bg-[#002050] transition-colors;
+    }
+
+    /* ── Inputs e selects inline (não usam x-text-input) ─ */
+    .br-input {
+        @apply rounded border-gray-300 dark:bg-[#001233] dark:border-[#003A8C] dark:text-gray-200 focus:border-[#009C3B] focus:ring-[#009C3B] dark:focus:border-[#009C3B] dark:focus:ring-[#009C3B];
+    }
+    .br-select {
+        @apply rounded border-gray-300 dark:bg-[#001233] dark:border-[#003A8C] dark:text-gray-200 focus:border-[#009C3B] focus:ring-[#009C3B] dark:focus:border-[#009C3B] dark:focus:ring-[#009C3B];
+    }
+
+    /* ── Botões inline ────────────────────────────────── */
+    .br-btn {
+        @apply px-4 py-2 bg-[#009C3B] hover:bg-[#007A2F] text-white text-sm font-medium rounded transition-colors;
+    }
+    .br-btn-sm {
+        @apply px-3 py-1.5 bg-[#009C3B] hover:bg-[#007A2F] text-white text-sm rounded transition-colors;
+    }
+    .br-btn-cancel {
+        @apply px-4 py-2 bg-white dark:bg-[#002050] border border-gray-300 dark:border-[#003A8C] text-gray-700 dark:text-gray-300 text-sm rounded hover:bg-gray-50 dark:hover:bg-[#002776] transition-colors;
+    }
+
+    /* ── Links ────────────────────────────────────────── */
+    .br-link {
+        @apply text-[#009C3B] dark:text-[#FFDF00] hover:underline;
+    }
+    .br-link-danger {
+        @apply text-red-600 dark:text-red-400 hover:underline;
+    }
+
+    /* ── Alertas / flash messages ─────────────────────── */
+    .br-alert-success {
+        @apply bg-[#E6F7EC] dark:bg-[#009C3B]/20 text-[#007A2F] dark:text-[#4DDB7A] border border-[#009C3B]/40 px-4 py-2 rounded;
+    }
+    .br-alert-error {
+        @apply bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 border border-red-300 dark:border-red-700 px-4 py-2 rounded;
+    }
+
+    /* ── Badges de status ─────────────────────────────── */
+    .br-badge-finished {
+        @apply inline-block text-xs font-medium text-[#007A2F] dark:text-[#4DDB7A];
+    }
+    .br-badge-scheduled {
+        @apply inline-block text-xs px-2 py-0.5 rounded-full bg-[#E8F0FB] dark:bg-[#002776]/50 text-[#002776] dark:text-[#FFDF00] font-medium;
+    }
+    .br-badge-live {
+        @apply inline-block text-xs px-2 py-0.5 rounded-full bg-[#FFF9E0] dark:bg-[#FFDF00]/20 text-[#997A00] dark:text-[#FFDF00] font-medium animate-pulse;
+    }
+
+    /* ── Labels nos formulários ───────────────────────── */
+    .br-label {
+        @apply block text-sm font-medium text-[#002776] dark:text-[#FFDF00]/80;
+    }
+}
