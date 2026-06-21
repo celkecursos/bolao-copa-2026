@@ -1,0 +1,95 @@
+# TASK 2 — Base, Autenticação e Permissões
+
+Segunda de **7 fases** de construção do **Sistema de Bolão da Copa do Mundo 2026**. Requer a **Task 1** (projeto já criado). Aqui montamos a fundação: credenciais, layout base, autenticação e papéis/permissões.
+
+> Sequência: Task 1 (criar projeto) → **Task 2** (base) → Task 3 (dados) → Task 4 (admin) → Task 5 (palpites) → Task 6 (pontuação) → Task 7 (dashboard/API/e-mail) → Task 8 (configurar .env) → Task 9 (commit) → Tasks 10–12 (deploy). Não faça commit nem deploy nesta task.
+
+---
+
+## 0. Credenciais e configuração (CONFIGURE AGORA, no `.env`)
+
+> **Fonte das credenciais:** `CREDENCIAIS.txt` (na raiz), seção **DESENVOLVIMENTO**. Para **esta** task, basta ter no `.env` local o **necessário para rodar**: **banco de dados (`DEV_DB_*`)** e **super-admin (`DEV_SEED_SUPERADMIN_*`)**. Os demais valores (token da API, e-mail iAgente, URL do repo) podem ser preenchidos pelo usuário **enquanto as Tasks 1–7 rodam** — serão consolidados e validados na **Task 8 (Configurar .env)**, antes do commit. As chaves `DEV_*` mapeiam para o `.env` **sem o prefixo** (ex.: `DEV_DB_HOST` → `DB_HOST`). Registre as chaves no `.env.example` **sem os valores reais**.
+
+**Nunca** versione o `.env`, o `CREDENCIAIS.txt` nem estes segredos em repositório público — se algum token vazar, gere um novo.
+
+### API de resultados — football-data.org (usada na Task 7)
+- Header de autenticação: **`X-Auth-Token`**
+- O token (`FOOTBALL_DATA_TOKEN`) está no **`CREDENCIAIS.txt`** — não repita o valor aqui.
+- ⚠️ **Throttling automático**: a API informa o limite de requisições nos **headers da resposta** (ex.: `X-Requests-Available-Minute`). O cliente **deve inspecionar esses headers** e respeitar o limite (free tier ~10 req/min). (Orientação do próprio provedor.)
+
+### Envio de e-mail — servidor iAgente (usado na Task 7)
+- Os e-mails do sistema serão enviados pelo **servidor da iAgente**.
+- Deixe a config de e-mail **preparada para receber os dados da iAgente** (SMTP):
+  ```
+  MAIL_MAILER=smtp
+  MAIL_HOST=<HOST_IAGENTE>
+  MAIL_PORT=<PORTA_IAGENTE>
+  MAIL_USERNAME=<USUARIO_IAGENTE>
+  MAIL_PASSWORD=<SENHA_IAGENTE>
+  MAIL_ENCRYPTION=<tls|ssl>
+  MAIL_FROM_ADDRESS=<remetente>
+  MAIL_FROM_NAME="Bolão Copa 2026"
+  ```
+- Enquanto os dados da iAgente não chegarem, use `MAIL_MAILER=log`.
+
+---
+
+## 1. Setup inicial (sobre o projeto criado na Task 1)
+
+> O projeto Laravel **já foi criado na Task 1** (com MySQL, Pest, sem starter kit). Aqui adicionamos auth, front-end e fila.
+
+- Confirme **Laravel 13**, **PHP 8.3** e **Node.js 24** (as MESMAS versões serão instaladas na VPS no deploy).
+- **Tailwind CSS** (via Vite, config oficial do Laravel) para todo o front-end. Layout limpo, responsivo. Crie **componentes Blade reutilizáveis** e um **layout base** (header/nav/footer) que as demais telas usarão.
+- **Tema claro/escuro com alternância**: configure `darkMode: 'class'` no `tailwind.config.js`; um botão de toggle (componente `<x-theme-toggle/>`) alterna a classe `dark` no `<html>` e **persiste em `localStorage`**; um script no `<head>` aplica o tema salvo **antes da renderização** (sem flash) e respeita a preferência do sistema. Disponível no app e nas telas de login (guest).
+- **Fila**: configure `QUEUE_CONNECTION=database` (será usada nas Tasks 6 e 7) e crie a tabela de jobs.
+- `README.md` inicial: como instalar (`composer install`, `npm install`), configurar `.env`, migrar e rodar (`php artisan serve` + `npm run dev` + `php artisan queue:work`).
+
+---
+
+## 2. Sistema de login e usuários
+
+- **Autenticação** com **Laravel Breeze** (stack Blade): registro, login, logout, recuperação de senha e edição de perfil — views estilizadas com o Tailwind do projeto.
+- Tabela `users` padrão do Laravel, com colunas extras se necessário (ex.: `avatar` opcional).
+- Após o login, redirecionar para o **Dashboard** (a tela em si será construída na Task 7; por ora uma rota/placeholder protegida basta).
+
+---
+
+## 3. Sistema de permissões (spatie/laravel-permission)
+
+Crie 3 **papéis (roles)**:
+
+1. **super-admin** — acesso total; passa por cima de qualquer verificação de permissão (use `Gate::before`).
+2. **admin** — pode **cadastrar/editar times**, **cadastrar/editar jogos** e **atribuir/alterar o resultado** dos jogos.
+3. **user** (usuário comum) — pode **fazer palpites** e ver o ranking; **não** edita times nem lança resultados.
+
+Requisitos:
+
+- **Seeder** que registra roles e permissions e cria um **super-admin** padrão (ex.: `superadmin@bolao.test` / senha definida no seeder e documentada no README).
+- Middleware de role/permission nas rotas (`role:admin|super-admin`, etc.).
+- Camada de **Policies** (`GamePolicy`, `BetPolicy`, `TeamPolicy`) + `@can` nas views para esconder ações sem permissão.
+- Tela (apenas super-admin) para **listar usuários e atribuir/remover papéis**.
+
+Permissions sugeridas: `teams.manage`, `games.manage`, `games.set-result`, `bets.create`, `users.manage`, `roles.manage`.
+
+---
+
+## Padrões gerais (valem para TODAS as fases)
+
+- **Form Requests** para validação, **Resource Controllers**, regras de negócio em **Services**.
+- Interface em **português (pt-BR)**: `APP_LOCALE=pt_BR`; traduza as telas do Breeze via `lang/pt_BR.json` e as mensagens de validação/auth/senha via o pacote **lucascudo/laravel-pt-BR-localization** (`lang/pt_BR/*.php`). Datas em UTC no banco, exibidas em `America/Sao_Paulo`.
+- **Testes (PHPUnit/Pest)** a cada fase cobrindo o que ela entrega.
+- `php artisan migrate:fresh --seed` deve sempre deixar o sistema funcional.
+- Comente o código onde a regra de negócio não for óbvia.
+
+---
+
+## Entregáveis da Task 2
+
+1. Breeze + Tailwind rodando sobre o projeto da Task 1, com layout base e fila configurada.
+2. `.env`/`.env.example` com as chaves da seção 0.
+3. Autenticação (Breeze) estilizada.
+4. Papéis super-admin/admin/user (spatie) + seeder do super-admin + tela de gestão de papéis.
+5. Policies e middleware de permissão.
+6. Tema claro/escuro com alternância persistente e UI traduzida para pt-BR.
+
+> Concluída a Task 2, prossiga para a **Task 3 (modelo de dados e seeds)**.

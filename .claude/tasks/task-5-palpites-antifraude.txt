@@ -1,0 +1,31 @@
+# TASK 5 — Palpites do Usuário (com antifraude)
+
+Quinta das 7 fases. Permite ao usuário comum palpitar nos jogos, com as travas de prazo e privacidade. Requer as **Tasks 1–4** concluídas.
+
+---
+
+## Funcionalidades
+
+- Tela **"Meus Palpites"** / lista de jogos onde o usuário escolhe o placar (`home_score` x `away_score`) de cada jogo.
+- **Regra de trava (com buffer)**: só é possível criar/editar o palpite **até X minutos antes do início do jogo** (`match_datetime`), com buffer **configurável** em `config/bolao.php` (padrão: 5 min). Após esse limite, o palpite fica somente leitura. Validar **sempre no back-end** usando o **horário do servidor** (nunca confiar no front).
+- **Fuso horário**: como `match_datetime` está em **UTC**, exiba ao usuário em **horário de Brasília** (`America/Sao_Paulo`) com Carbon.
+- **Privacidade dos palpites (antifraude)**: os palpites dos **outros** usuários só ficam visíveis **após o início do jogo**. Antes do `match_datetime`, cada usuário enxerga apenas o **próprio** palpite.
+- **Mata-mata sem empate**: em jogos de fase eliminatória, o formulário **não deve permitir placar empatado** (ou deve exigir a escolha do classificado nos pênaltis) — validar no back-end.
+- Mostrar ao usuário os pontos que ganhou em cada jogo já finalizado (campo `points_earned`, calculado na Task 6).
+
+---
+
+## Permissões
+- Apenas usuários autenticados com permissão `bets.create`. Admin/super-admin também podem palpitar, se desejado.
+
+---
+
+## Entregáveis da Task 5
+
+1. Tela de palpites com criação/edição respeitando a constraint única (1 palpite por jogo).
+2. Trava por horário com buffer configurável, validada no back-end.
+3. Privacidade dos palpites alheios até o início do jogo.
+4. Bloqueio de empate em jogos de mata-mata.
+5. Testes: não dá para palpitar/editar após o prazo; não dá para ver palpite alheio antes do início.
+
+> Concluída a Task 5, prossiga para a **Task 6 (pontuação, fila e ranking)**.

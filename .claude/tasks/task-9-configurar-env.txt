@@ -1,0 +1,118 @@
+# TASK 9 — Organizar arquivos do projeto e configurar o `.env`
+
+Esta task tem duas responsabilidades:
+1. **Organizar** os arquivos de suporte (tasks, docs, credenciais) para dentro do projeto Laravel, seguindo as boas práticas de desenvolvimento com IA.
+2. **Configurar** o `.env` a partir do `CREDENCIAIS.txt`.
+
+Execute **após as Tasks 1–8** e **antes do commit (Task 10)**.
+
+> Contexto: durante as Tasks 1–8 o `.env` já tinha o mínimo para rodar (banco e super-admin). Aqui finalizamos com os valores que o usuário preencheu em paralelo (token da API, e-mail iAgente, URL do repo).
+
+---
+
+## Parte A — Organizar arquivos do projeto
+
+Os arquivos de suporte estão em `C:\celke\` (fora do projeto). Mova-os para dentro de `C:\celke\copa\` conforme a estrutura abaixo, que segue as boas práticas de projetos Laravel com IA (Claude Code).
+
+### Estrutura de destino
+
+```
+copa/                            ← raiz do projeto Laravel
+├── .claude/                     ← contexto Claude Code (já existe se usou custom commands)
+│   └── tasks/                   ← NOVO — arquivos de task e ordem de execução
+│       ├── 00-ordem-das-tasks.txt
+│       ├── task-1-criar-projeto.txt
+│       ├── task-2-base-auth-permissoes.txt
+│       ├── task-3-modelo-dados-seeds.txt
+│       ├── task-4-admin-auditoria.txt
+│       ├── task-5-palpites-antifraude.txt
+│       ├── task-6-pontuacao-fila-ranking.txt
+│       ├── task-7-dashboard-api-notificacoes.txt
+│       ├── task-8-tema-brasil.txt
+│       ├── task-9-configurar-env.txt       ← este arquivo
+│       ├── task-10-commit.txt
+│       ├── task-11-deploy-vps-ssh.txt
+│       ├── task-12-deploy-app.txt
+│       └── task-13-deploy-cron-jobs.txt
+├── docs/
+│   └── deploy/                  ← NOVO — documentação de infraestrutura
+│       ├── 01-inicio-projeto.md
+│       ├── 02-configurar-vps-hostinger.md
+│       ├── 03-conectar-o-pc-ao-servidor-com-ssh.md
+│       └── 04-conectar-a-vps-ao-github-com-ssh.md
+├── CREDENCIAIS.txt              ← NOVO (movido de C:\celke\) — NÃO vai ao git
+├── CREDENCIAIS.example.txt      ← NOVO (era "CREDENCIAIS copy.txt") — VAI ao git
+├── CLAUDE.md
+└── .gitignore
+```
+
+### Passos de organização
+
+1. **Criar os diretórios** dentro do projeto (se não existirem):
+   ```
+   copa\.claude\tasks\
+   copa\docs\deploy\
+   ```
+
+2. **Mover as tasks** de `C:\celke\` para `copa\.claude\tasks\`:
+   - `00-ordem-das-tasks.txt` e todos os `task-*.txt`
+
+3. **Mover os arquivos de documentação** de `C:\celke\` para `copa\docs\deploy\`:
+   - `01-inicio-projeto.md`
+   - `02-configurar-vps-hostinger.md`
+   - `03-conectar-o-pc-ao-servidor-com-ssh.md`
+   - `04-conectar-a-vps-ao-github-com-ssh.md`
+
+4. **Mover o `CREDENCIAIS.txt`** de `C:\celke\` para a raiz de `copa\`.
+   Depois, confirme que ele está no `.gitignore` (passo obrigatório — veja Parte B, passo 6).
+
+5. **Mover e renomear o `CREDENCIAIS copy.txt`** de `C:\celke\` para `copa\CREDENCIAIS.example.txt`.
+   - Este arquivo **será commitado e enviado ao GitHub** para que outros desenvolvedores que clonarem o repositório saibam quais variáveis precisam preencher.
+   - Ele deve conter **apenas os nomes das chaves**, sem nenhum valor real (senhas, tokens, etc.).
+   - Verifique que `CREDENCIAIS.example.txt` **não** está no `.gitignore`.
+
+---
+
+## Parte B — Configurar o `.env`
+
+1. **Leia o `CREDENCIAIS.txt`** (agora em `copa\CREDENCIAIS.txt`) e use a seção **COMUM** + **DESENVOLVIMENTO** para montar o `.env` LOCAL. As chaves `DEV_*` vão para o `.env` sem o prefixo (ex.: `DEV_DB_HOST` → `DB_HOST`). **Ignore a seção PRODUÇÃO** (`PROD_*`) — ela só é usada na VPS (Task 12).
+   - Aplicação: `APP_NAME` (comum), `DEV_APP_ENV`, `DEV_APP_DEBUG`, `DEV_APP_URL`, `APP_TIMEZONE` (comum)
+   - Banco: `DEV_DB_*`
+   - Fila: `QUEUE_CONNECTION` (comum)
+   - Super-admin: `DEV_SEED_SUPERADMIN_*`
+   - API: `FOOTBALL_DATA_TOKEN` (comum)
+   - E-mail: `DEV_MAIL_*`
+
+2. **E-mail**: se os dados da iAgente foram preenchidos em `DEV_MAIL_*`, defina `MAIL_MAILER=smtp`; caso contrário, mantenha `MAIL_MAILER=log`.
+
+3. Atualize o **`.env.example`** com as mesmas chaves, **sem os valores reais**.
+
+4. Rode `php artisan config:clear` (e `key:generate` se ainda não houver `APP_KEY`).
+
+5. **Validações**:
+   - Conexão com o banco OK; rode `php artisan migrate:fresh --seed` (estado final) e confirme que o super-admin foi criado com o e-mail/senha definidos.
+   - Inicie um `php artisan queue:work` de teste para confirmar a fila.
+   - (Opcional) Faça **uma** chamada leve à API football-data para validar o token, **respeitando o rate limit** (ver Task 7).
+   - Se `MAIL_MAILER=smtp`, envie um e-mail de teste para validar a iAgente.
+
+6. **Segurança** — confirme que o `.gitignore` contém **pelo menos** estas entradas:
+   ```
+   .env
+   CREDENCIAIS.txt
+   ```
+   `CREDENCIAIS.example.txt` **não** deve estar no `.gitignore`.
+
+> A chave `REPOSITORIO_GIT` do `CREDENCIAIS.txt` **não** vai para o `.env` — ela é usada na Task 10 (commit).
+
+---
+
+## Entregáveis da Task 9
+
+1. Diretórios `copa\.claude\tasks\` e `copa\docs\deploy\` criados e populados.
+2. `CREDENCIAIS.txt` movido para `copa\` e listado no `.gitignore`.
+3. `CREDENCIAIS.example.txt` movido/renomeado para `copa\` (será commitado).
+4. `.env` final do projeto preenchido a partir do `CREDENCIAIS.txt`.
+5. `.env.example` atualizado (sem valores reais).
+6. `migrate:fresh --seed` rodando e super-admin criado conforme as credenciais.
+
+> Concluída a Task 9, prossiga para a **Task 10 (commit/versionamento)**.

@@ -1,0 +1,40 @@
+# TASK 6 — Pontuação, Fila e Ranking
+
+Sexta das 7 fases. Implementa o cálculo de pontos (em fila, idempotente), o critério de desempate e a base do ranking. Requer as **Tasks 1–5** concluídas.
+
+---
+
+## Sistema de pontuação
+
+Crie um serviço **`ScoringService`** com regras **configuráveis** em `config/bolao.php`:
+
+- **Placar exato** (home e away corretos): **+10 pontos** (pontuação máxima do jogo).
+- **Acertou o vencedor/empate** (resultado certo, placar errado): **+5 pontos**.
+- **Acerto parcial** (opcional, configurável e fácil de desligar): acertar os gols de apenas um dos times: **+1 ponto**. Comece ativado, documentado.
+- Errou tudo: **0 pontos**.
+- **Não acumula**: use a maior regra aplicável (placar exato = 10, não 10+5).
+
+Implementação:
+
+- **Idempotência**: ao **lançar/alterar o resultado** de um jogo (gatilho criado na Task 4), recalcular o `points_earned` de **todos os bets** daquele jogo **definindo o valor absoluto** (nunca incrementando) — rodar N vezes dá sempre o mesmo resultado.
+- **Fila (queue)**: o recálculo roda como **Job assíncrono** (ex.: `RecalculateGamePointsJob`), para não travar o admin nem a sincronização da API (Task 7). Use `QUEUE_CONNECTION=database` (configurado na Task 2) e documente `php artisan queue:work` no README.
+- **Mata-mata (pênaltis/classificado)**: em jogos eliminatórios não há empate no resultado final; a regra de "acertou o vencedor" deve considerar **quem avançou**. Deixe claro no `ScoringService` como o vencedor é determinado.
+
+---
+
+## Ranking
+
+- Método para calcular o **total de pontos por usuário** (soma de `points_earned`). Pode usar cache/consulta agregada para performance.
+- **Critério de desempate** (configurável): havendo empate em pontos, ordenar por (1) maior nº de **placares exatos**, (2) maior nº de **acertos de vencedor**, (3) ordem de registro. Exponha um método que retorne esses contadores por usuário (será consumido pelo Dashboard na Task 7).
+
+---
+
+## Entregáveis da Task 6
+
+1. `ScoringService` com regras configuráveis e idempotente.
+2. `RecalculateGamePointsJob` rodando em fila, acionado ao lançar/alterar resultado.
+3. Tratamento de vencedor em jogos de mata-mata.
+4. Cálculo de ranking com critério de desempate.
+5. **Testes** cobrindo pontuação (todos os casos) e o desempate.
+
+> Concluída a Task 6, prossiga para a **Task 7 (dashboard, API e e-mail)**.

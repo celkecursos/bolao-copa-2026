@@ -1,0 +1,61 @@
+# TASK 1 — Criar o Projeto Laravel
+
+Primeira de **7 fases** de construção do **Sistema de Bolão da Copa do Mundo 2026**. Aqui apenas **criamos o projeto Laravel** com o instalador, respondendo aos prompts conforme abaixo. Auth, Tailwind, permissões, banco e demais recursos vêm a partir da **Task 2**.
+
+> Sequência: **Task 1** (criar projeto) → Task 2 (base/auth/permissões) → Task 3 (dados) → Task 4 (admin) → Task 5 (palpites) → Task 6 (pontuação) → Task 7 (dashboard/API/e-mail) → Task 8 (configurar .env) → Task 9 (commit) → Tasks 10–12 (deploy). Não faça commit nem deploy nesta task.
+
+---
+
+## 0. Pré-requisitos (mesmas versões do deploy)
+
+- **PHP 8.3** — `php -v`
+- **Node.js 24** — `node -v` (o `npm` vem junto)
+- **Composer** — `composer --version`
+- **Laravel Installer** — `laravel --version` (se faltar: `composer global require laravel/installer`)
+- **MySQL 8.0+** rodando localmente.
+
+---
+
+## 1. Criar o projeto
+
+Crie o projeto Laravel com o nome **`copa`** (combina com o domínio `copa.celke.uno`), na pasta de trabalho:
+```
+laravel new copa
+```
+
+Responda aos prompts do instalador **assim** (orientações do tutorial + recomendações):
+
+| Prompt | Resposta | Por quê |
+|---|---|---|
+| **Which starter kit?** [None] | **none** | Sem starter kit; o **Breeze (Blade)** será instalado na Task 2 (traz auth + Tailwind + Vite). |
+| **Which testing framework?** [Pest] | **0** (Pest) | Framework de testes do projeto. |
+| **Install Laravel Boost (AI assisted coding)?** [yes] | **no** | Mantém o ambiente mais simples. *(Opcional: como você usa o Claude Code, `yes` pode ajudar a IA a entender o projeto — escolha sua.)* |
+| **Which database?** [SQLite] | **mysql** | O sistema usa MySQL. |
+| **Run default database migrations?** [yes] | **no** | O `.env`/banco ainda não estão configurados e há migrations próprias (Task 3). Rodaremos depois. |
+| **Run `npm install` and `npm run build`?** [yes] | **no** | O Breeze (Task 2) reinstala/recompila os assets com o Tailwind — evita build redundante. |
+
+> Alternativa não interativa (a IA pode usar): `laravel new copa --database=mysql --pest --no-interaction` e depois ajustar o que faltar. A tabela acima é a fonte da verdade das escolhas.
+
+---
+
+## 2. Configuração mínima para rodar
+
+- No `.env`, preencha apenas o **banco de dados** a partir do `CREDENCIAIS.txt` (seção **DESENVOLVIMENTO**, chaves `DEV_DB_*` → `DB_*` sem o prefixo). Crie a base de dados no MySQL se necessário.
+- `php artisan key:generate` (se ainda não houver `APP_KEY`).
+- Validar que o projeto sobe:
+  ```
+  php artisan serve
+  ```
+  Acessar `http://127.0.0.1:8000` e ver a tela inicial do Laravel.
+
+> ⚠️ Não rode as migrations do domínio nem instale Breeze/Tailwind aqui — isso é da Task 2/Task 3. Não faça commit nesta task.
+
+---
+
+## Entregáveis da Task 1
+
+1. Projeto Laravel **`copa`** criado (sem starter kit, testes em Pest, banco MySQL).
+2. `.env` com o banco de desenvolvimento configurado e `APP_KEY` gerada.
+3. `php artisan serve` exibindo a tela inicial do Laravel em `http://127.0.0.1:8000`.
+
+> Concluída a Task 1, prossiga para a **Task 2 (base, autenticação e permissões)**.

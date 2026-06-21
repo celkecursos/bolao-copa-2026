@@ -1,0 +1,114 @@
+# =====================================================================
+#  CREDENCIAIS DO PROJETO — Bolão da Copa do Mundo 2026
+#  EXEMPLO — copie este arquivo para CREDENCIAIS.txt e preencha os valores
+# =====================================================================
+#
+#  COMO USAR:
+#  1. Copie este arquivo: cp CREDENCIAIS.example.txt CREDENCIAIS.txt
+#  2. Preencha todos os campos com seus valores reais.
+#  3. NUNCA commite o CREDENCIAIS.txt (está no .gitignore).
+#
+# =====================================================================
+
+
+# #####################################################################
+#  CREDENCIAIS COMUM (vale para DEV e PRODUÇÃO)
+# #####################################################################
+APP_NAME=
+APP_TIMEZONE=UTC
+QUEUE_CONNECTION=database
+
+# API DE RESULTADOS — https://www.football-data.org (header X-Auth-Token)
+FOOTBALL_DATA_TOKEN=
+FOOTBALL_DATA_COMPETITION=WC
+
+
+# #####################################################################
+#  CREDENCIAIS DESENVOLVIMENTO PARTE 1  ->  `.env` LOCAL (Task 1)
+# #####################################################################
+# --- Banco de dados (MySQL local) ---
+DEV_DB_CONNECTION=mysql
+DEV_DB_HOST=127.0.0.1
+DEV_DB_PORT=3306
+DEV_DB_DATABASE=
+DEV_DB_USERNAME=
+DEV_DB_PASSWORD=
+
+# --- Super-admin (seeder) ---
+DEV_SEED_SUPERADMIN_NAME=
+DEV_SEED_SUPERADMIN_EMAIL=
+DEV_SEED_SUPERADMIN_PASSWORD=
+
+
+# #####################################################################
+#  CREDENCIAIS DESENVOLVIMENTO - PARTE 2  ->  `.env` LOCAL (Task 9)
+# #####################################################################
+# --- App ---
+DEV_APP_ENV=local
+DEV_APP_DEBUG=true
+DEV_APP_URL=http://localhost:8000
+
+# --- E-mail (dev) ---
+DEV_MAIL_MAILER=smtp
+DEV_MAIL_HOST=
+DEV_MAIL_PORT=587
+DEV_MAIL_USERNAME=
+DEV_MAIL_PASSWORD=
+DEV_MAIL_ENCRYPTION=ssl
+DEV_MAIL_FROM_ADDRESS=
+DEV_MAIL_FROM_NAME=
+
+
+# #####################################################################
+#  CREDENCIAIS PRODUÇÃO  ->  `.env` na VPS (Task 11)
+# #####################################################################
+# --- App ---
+PROD_APP_ENV=production
+PROD_APP_DEBUG=false
+PROD_APP_URL=
+
+# --- Banco de dados (MySQL na VPS) ---
+PROD_DB_CONNECTION=mysql
+PROD_DB_HOST=127.0.0.1
+PROD_DB_PORT=3306
+PROD_DB_DATABASE=
+PROD_DB_USERNAME=
+PROD_DB_PASSWORD=
+
+# --- Super-admin (seeder em produção) ---
+PROD_SEED_SUPERADMIN_NAME=
+PROD_SEED_SUPERADMIN_EMAIL=
+PROD_SEED_SUPERADMIN_PASSWORD=
+
+# --- E-mail (produção) ---
+PROD_MAIL_MAILER=smtp
+PROD_MAIL_HOST=
+PROD_MAIL_PORT=587
+PROD_MAIL_USERNAME=
+PROD_MAIL_PASSWORD=
+PROD_MAIL_ENCRYPTION=ssl
+PROD_MAIL_FROM_ADDRESS=
+PROD_MAIL_FROM_NAME=
+
+
+# #####################################################################
+#  SERVIDOR / VPS — acesso SSH (NÃO vai no .env)  — Tasks 10–12
+# #####################################################################
+VPS_SSH_USER=root
+VPS_IP=
+VPS_SSH_PASSWORD=
+
+VPS_DOMAIN=
+VPS_LINUX_USER=
+VPS_PROJECT_PATH=
+VPS_PHP_BIN=/usr/bin/php8.3
+
+SSH_KEY_EMAIL=
+
+
+# #####################################################################
+#  GIT / GITHUB (NÃO vai no .env)
+# #####################################################################
+REPOSITORIO_GIT=
+REPOSITORIO_GIT_SSH=
+DEPLOY_BRANCH=main
