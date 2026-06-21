@@ -1,0 +1,50 @@
+# TASK 4 — Painel do Admin e Auditoria de Resultados
+
+Quarta das 7 fases. Cria a área administrativa (CRUD de times/jogos, lançamento de resultado) e a auditoria. Requer as **Tasks 1–3** concluídas. Tudo protegido por permissões/policies (Task 2).
+
+---
+
+## 1. CRUD de times
+- Criar, listar, editar, excluir times (com proteção de FK / soft delete).
+
+## 2. CRUD de jogos
+- Criar, listar, editar jogos (alterar os times, data, grupo, fase/`stage`).
+- Filtros úteis por grupo, fase e data.
+
+## 3. Lançar resultado
+- Tela para informar `home_score` e `away_score`, mudar `status` para `finished`.
+- Ao salvar, **disparar o recálculo de pontuação** de todos os palpites daquele jogo. (O `ScoringService`/Job é implementado na Task 6; nesta fase, deixe o **gatilho** pronto — ex.: um evento/observer ou chamada de serviço — mesmo que a lógica de cálculo seja finalizada depois.)
+
+## 4. Log de auditoria de resultados — biblioteca Laravel Auditing
+
+Use a biblioteca **Laravel Auditing** (https://laravel-auditing.com/ — pacote `owen-it/laravel-auditing`) para registrar automaticamente **quem alterou, quando e os valores de/para** (placar anterior → novo), pois isso afeta a pontuação de todos.
+
+- Instalar:
+  ```
+  composer require owen-it/laravel-auditing
+  ```
+- Publicar a config e a migration e migrar:
+  ```
+  php artisan vendor:publish --provider "OwenIt\Auditing\AuditingServiceProvider" --tag="config"
+  php artisan vendor:publish --provider "OwenIt\Auditing\AuditingServiceProvider" --tag="migrations"
+  php artisan migrate
+  ```
+- No model **`Game`**, ative a auditoria: `implements \OwenIt\Auditing\Contracts\Auditable` + `use \OwenIt\Auditing\Auditable;`. Assim, alterações em `home_score`, `away_score` e `status` são auditadas automaticamente (com usuário, data e valores old/new).
+- Exiba o **histórico de auditoria na tela do jogo** para os admins (lendo os registros da tabela `audits` / relação `audits()` do model).
+
+---
+
+## Permissões
+- Acesso restrito a **admin** e **super-admin** (`teams.manage`, `games.manage`, `games.set-result`).
+- Usuário comum não pode acessar nenhuma dessas telas/ações.
+
+---
+
+## Entregáveis da Task 4
+
+1. CRUD de times e de jogos (admin).
+2. Lançamento de resultado com gatilho de recálculo de pontuação.
+3. Auditoria via **owen-it/laravel-auditing** (model `Game` auditável) + tela de histórico das alterações de resultado.
+4. Testes de permissão: usuário comum **não** consegue lançar resultado nem editar times/jogos.
+
+> Concluída a Task 4, prossiga para a **Task 5 (palpites do usuário)**.

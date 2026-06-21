@@ -1,0 +1,118 @@
+# TASK 12 — Deploy (3/3): Cron, Filas (Jobs) e Atualizações
+
+Última fase de deploy. Ativa o **agendador (cron)** — que roda a sincronização de resultados (API) e os lembretes por e-mail — e o **worker de filas** (Supervisor) para os Jobs de pontuação/e-mail. Inclui a rotina de **atualização** do projeto. Requer a **Task 11** concluída.
+
+> **Credenciais:** `VPS_PROJECT_PATH`, `VPS_PHP_BIN`, `VPS_LINUX_USER`, `VPS_IP`, `VPS_SSH_USER` do `CREDENCIAIS.txt`.
+
+---
+
+## 1. Cron (agendador do Laravel)
+
+O Scheduler executa o `worldcup:sync-matches` (Task 7) e os lembretes de palpite. Ver os agendamentos:
+```
+php artisan schedule:list
+```
+Abrir o crontab na VPS:
+```
+crontab -e
+```
+Adicionar (rodar o scheduler a cada minuto) — usar `VPS_PHP_BIN` e `VPS_PROJECT_PATH`:
+```
+* * * * * cd /home/celke-copa/htdocs/copa.celke.uno && /usr/bin/php8.3 artisan schedule:run >> /dev/null 2>&1
+```
+Reiniciar o cron:
+```
+sudo service cron restart
+```
+Referência do formato:
+```
+* * * * * comando
+│ │ │ │ │
+│ │ │ │ └── Dia da semana (0-7)
+│ │ │ └──── Mês (1-12)
+│ │ └────── Dia do mês (1-31)
+│ └──────── Hora (0-23)
+└────────── Minuto (0-59)
+```
+
+---
+
+## 2. Filas (Jobs) com Supervisor
+
+Garanta `QUEUE_CONNECTION=database` no `.env` (já definido na Task 11). Os Jobs de recálculo de pontuação (Task 6) e e-mails (Task 7) rodam pela fila.
+
+Criar o arquivo de configuração do Supervisor:
+```
+sudo nano /etc/supervisor/conf.d/laravel-worker.conf
+```
+Conteúdo (ajuste `VPS_PHP_BIN`, `VPS_PROJECT_PATH` e `VPS_LINUX_USER`):
+```
+[program:laravel-worker]
+process_name=%(program_name)s_%(process_num)02d
+command=/usr/bin/php8.3 /home/celke-copa/htdocs/copa.celke.uno/artisan queue:work --sleep=3 --tries=3
+autostart=true
+autorestart=true
+user=celke-copa
+numprocs=1
+redirect_stderr=true
+stdout_logfile=/home/celke-copa/htdocs/copa.celke.uno/storage/logs/laravel-worker.log
+```
+Aplicar a configuração:
+```
+sudo supervisorctl reread
+sudo supervisorctl update
+sudo supervisorctl start laravel-worker:*
+```
+
+---
+
+## 3. Após mudanças em Jobs/código
+
+```
+php artisan queue:restart
+php artisan config:clear
+php artisan route:clear
+php artisan view:clear
+php artisan cache:clear
+php artisan optimize:clear
+```
+
+---
+
+## 4. Rotina de atualização (enviar nova versão para produção)
+
+No PC (mesclar develop → main e publicar):
+```
+git switch main
+git merge develop
+git push origin main
+```
+Na VPS:
+```
+ssh root@76.13.239.186
+cd /home/celke-copa/htdocs/copa.celke.uno
+git pull
+composer install --no-dev --optimize-autoloader
+npm install
+npm run build
+sudo chown -R celke-copa:celke-copa /home/celke-copa/htdocs/copa.celke.uno
+php artisan migrate --force
+php artisan config:clear
+php artisan route:clear
+php artisan view:clear
+php artisan cache:clear
+php artisan optimize:clear
+php artisan queue:restart
+sudo service cron restart
+sudo systemctl restart nginx
+```
+
+---
+
+## Entregáveis da Task 12
+
+1. Cron rodando o `schedule:run` a cada minuto (API + lembretes ativos).
+2. Supervisor mantendo `queue:work` ativo (Jobs de pontuação/e-mail processando).
+3. Rotina de atualização documentada e testada (deploy de nova versão).
+
+> Fim do tutorial: sistema construído (1–7), configurado (8), versionado (9) e publicado (10–12) na VPS da Hostinger.

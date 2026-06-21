@@ -1,0 +1,46 @@
+# TASK 3 — Modelo de Dados e Seeds (Copa 2026)
+
+Terceira das 7 fases. Cria o schema do domínio (times, jogos, palpites) e popula a fase de grupos da Copa 2026. Requer as **Tasks 1 e 2** concluídas.
+
+---
+
+## 1. Modelo de dados (migrations + models + factories)
+
+### `teams` (times)
+- `id`, `name`, `code` (sigla FIFA, ex.: BRA), `group` (char A–L), `flag` (url/emoji da bandeira, opcional), `external_id` (id do time na API football-data, nullable), timestamps.
+
+### `games` (jogos) — use o nome de tabela `games` para evitar conflito com a palavra reservada `matches`
+- `id`, `home_team_id` (FK teams), `away_team_id` (FK teams), `group` (char A–L, nullable no mata-mata), `stage` (enum completo: `group`, `round_32`, `round_16`, `quarter`, `semi`, `third_place`, `final` — **a Copa de 2026 tem 48 seleções, então o mata-mata começa nas oitavas de 32 / Round of 32**), `match_datetime` (datetime do jogo, **armazenado em UTC**; exibir em horário de Brasília), `stadium`/`city` (opcional), `home_score` (nullable int), `away_score` (nullable int), `status` (enum: `scheduled`, `live`, `finished`), `external_id` (id da partida na API, nullable), timestamps.
+- Métodos auxiliares no model: `hasResult()`, `winner()` (retorna `home`, `away` ou `draw`), `hasStarted()`, `isKnockout()`. **Em jogos de mata-mata não existe empate no resultado final** (ver tratamento de pênaltis/classificado na Task 6).
+
+### `bets` (palpites/apostas)
+- `id`, `user_id` (FK), `game_id` (FK games), `home_score` (int), `away_score` (int), `points_earned` (int, default 0), timestamps.
+- **Constraint única** `(user_id, game_id)` — um palpite por usuário por jogo.
+
+Relacionamentos: `Team hasMany games (home/away)`, `Game belongsTo home/away Team`, `Game hasMany bets`, `User hasMany bets`, `Bet belongsTo User e Game`.
+
+> Considere `softDeletes` em `teams`/`games` para preservar o histórico de palpites caso algo seja removido.
+
+---
+
+## 2. Seed dos jogos da fase de grupos — Copa do Mundo 2026
+
+Crie um **Seeder** (`WorldCup2026Seeder`) que popule **times e jogos da fase de grupos**:
+
+- A Copa de 2026 (EUA/Canadá/México) tem **48 seleções em 12 grupos (A–L)** de 4 times cada.
+- Cadastre os 48 times distribuídos nos 12 grupos. Onde a vaga ainda for de repescagem/playoff e não tiver seleção definida, cadastre como placeholder (ex.: "Repescagem UEFA A") com a sigla apropriada — deixe claro no código que é placeholder e fácil de atualizar.
+- Gere os **6 jogos de cada grupo** (todos contra todos = 12 grupos × 6 = **72 jogos de fase de grupos**), com `stage = 'group'`, `match_datetime` plausível (junho/julho 2026, em UTC) e `status = 'scheduled'`.
+- Estruture o seeder de forma **organizada e fácil de editar** (arrays por grupo).
+- Quando possível, preencha o `external_id` dos times/jogos para casar com a API football-data (Task 7).
+
+---
+
+## Entregáveis da Task 3
+
+1. Migrations + models (com relacionamentos e métodos auxiliares) de `teams`, `games`, `bets`.
+2. Factories para teste.
+3. `WorldCup2026Seeder` com 48 times em 12 grupos e os 72 jogos da fase de grupos.
+4. `php artisan migrate:fresh --seed` populando tudo corretamente.
+5. Testes básicos dos models/relacionamentos.
+
+> Concluída a Task 3, prossiga para a **Task 4 (admin e auditoria)**.

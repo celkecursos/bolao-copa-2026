@@ -1,0 +1,136 @@
+# TASK — Tema Brasil (Identidade Visual Copa 2026)
+
+Altera o visual do Bolão Copa 2026 para as cores oficiais do Brasil: **verde (#009C3B), amarelo (#FFDF00) e azul (#002776)**, com suporte a tema claro e escuro.
+
+---
+
+## O que foi feito
+
+### Logo e Favicon
+- `resources/views/components/application-logo.blade.php` — novo SVG com design inspirado na bandeira do Brasil:
+  círculo verde → losango amarelo → círculo azul → estrela branca de 5 pontas.
+  Usado no topo da navbar (h-9) e na tela de autenticação (w-20 h-20).
+- `public/favicon.svg` — versão compacta (32×32) do mesmo emblema.
+  Referenciado em ambos os layouts (`<link rel="icon" type="image/svg+xml" href="/favicon.svg">`).
+
+### Paleta de cores (tailwind.config.js + app.css)
+Cores brasileiras adicionadas ao tema do Tailwind:
+```
+br-green:      #009C3B   (verde principal)
+br-green-dark: #007A2F   (hover / sombra)
+br-yellow:     #FFDF00   (amarelo — destaques e links ativos)
+br-blue:       #002776   (azul — cabeçalhos de página)
+br-navy:       #001a50   (dark mode — navbar / cards)
+br-deep:       #001233   (dark mode — fundo da página)
+```
+Variáveis CSS também definidas em `resources/css/app.css` sob `@layer base`.
+
+### Tema claro
+| Elemento               | Cor                       |
+|------------------------|---------------------------|
+| Fundo da página        | `#F0FAF4` (verde claro)   |
+| Navbar                 | `#009C3B` (verde)         |
+| Cabeçalho de página    | `#002776` (azul)          |
+| Botão primário         | `#009C3B` → hover `#007A2F` |
+| Link ativo no menu     | borda/texto `#FFDF00`     |
+| Focus rings            | `#FFDF00`                 |
+| Highlight ranking (você) | `#FFFDE7` (amarelo suave) |
+
+### Tema escuro
+| Elemento               | Cor                       |
+|------------------------|---------------------------|
+| Fundo da página        | `#001233` (azul profundo) |
+| Navbar                 | `#001a50` (marinho)       |
+| Cabeçalho de página    | `#001a50`                 |
+| Cards / painéis        | `#002050`                 |
+| Link ativo no menu     | `#FFDF00`                 |
+| Highlight ranking (você) | `#002776/40` + texto `#FFDF00` |
+
+### Arquivos alterados
+```
+tailwind.config.js
+resources/css/app.css
+public/favicon.svg                                          (NOVO)
+resources/views/components/application-logo.blade.php      (NOVO SVG)
+resources/views/components/primary-button.blade.php
+resources/views/components/secondary-button.blade.php
+resources/views/components/text-input.blade.php
+resources/views/components/nav-link.blade.php
+resources/views/components/responsive-nav-link.blade.php
+resources/views/components/theme-toggle.blade.php
+resources/views/layouts/app.blade.php
+resources/views/layouts/guest.blade.php
+resources/views/layouts/navigation.blade.php
+resources/views/dashboard.blade.php
+resources/views/admin/games/form.blade.php
+resources/views/admin/games/index.blade.php
+resources/views/admin/games/result.blade.php
+resources/views/admin/teams/form.blade.php
+resources/views/admin/teams/index.blade.php
+resources/views/admin/users/index.blade.php
+resources/views/bets/index.blade.php
+resources/views/profile/edit.blade.php
+resources/views/welcome.blade.php                           (NOVO — página inicial)
+```
+
+### Classes CSS de componente (app.css — @layer components)
+
+Para evitar repetir os valores hex em cada view, foi criada uma biblioteca de
+classes reutilizáveis brasileiras em `resources/css/app.css`:
+
+| Classe | Uso |
+|---|---|
+| `.br-card` | Card branco/marinho com borda verde no topo |
+| `.br-section-title` | Título de seção: azul (claro) / amarelo (escuro) |
+| `.br-subsection-title` | Subtítulo: verde (claro) / amarelo (escuro) |
+| `.br-thead` | Cabeçalho de tabela: fundo verde/azul, texto branco/amarelo |
+| `.br-tbody` | Linhas com divisor e hover em verde suave |
+| `.br-btn` / `.br-btn-sm` | Botões verdes |
+| `.br-btn-cancel` | Botão cancelar neutro (dark-aware) |
+| `.br-link` / `.br-link-danger` | Links verde/vermelho |
+| `.br-alert-success` / `.br-alert-error` | Flash messages Brasil |
+| `.br-badge-finished` / `.br-badge-scheduled` / `.br-badge-live` | Badges de status |
+| `.br-input` / `.br-select` | Campos de formulário com foco verde |
+| `.br-label` | Labels: azul (claro) / amarelo suave (escuro) |
+
+### Melhorias no tema escuro
+- Fundo dos cards: `#001E40` (marinho levemente mais claro que `#001233`)
+- Cabeçalhos de tabela: `bg-[#002776] text-[#FFDF00]` (azul + texto amarelo)
+- Títulos de seção: `text-[#FFDF00]` (amarelo)
+- Números do ranking: verde no rank, amarelo nos pontos
+- Badges "encerrado": verde `#4DDB7A` · "agendado": amarelo
+- Labels de formulário: `#FFDF00/80`
+- Ícones de grupo de times: círculo amarelo com texto azul
+
+### Melhorias no tema claro
+- Cards com borda esquerda (dashboard: amarelo/verde/azul por tipo)
+- Cabeçalhos de tabela: verde `#009C3B` com texto branco
+- Títulos de seção: azul `#002776`
+- Grupos de times: bolinha verde com letra branca
+- Header da página: azul `#002776` com faixa amarela embaixo
+
+---
+
+## Como aplicar / rebuild
+
+Após fazer as alterações, reconstruir os assets:
+```bash
+npm run build          # produção
+# ou
+npm run dev            # desenvolvimento (hot-reload)
+```
+
+Se o logo não aparecer corretamente nas telas de auth, verifique que a classe
+`fill-current` não está sendo aplicada sobre o SVG (os layouts guest e app
+foram atualizados para não usar esse utilitário no logo).
+
+---
+
+## Notas de design
+- O logo usa `fill` hardcoded em cada elemento SVG para não ser afetado por
+  herança de CSS da classe `fill-current` do Tailwind.
+- O toggle de tema (sol/lua) usa `text-white` e `hover:bg-white/20` para
+  funcionar tanto na navbar verde quanto no painel admin escuro.
+- Nos formulários de autenticação (guest layout), o botão do toggle fica dentro
+  de um wrapper `bg-[#009C3B] dark:bg-[#002776] rounded-lg` para ter
+  contraste adequado sobre o fundo claro.

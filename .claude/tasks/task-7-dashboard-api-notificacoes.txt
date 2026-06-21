@@ -1,0 +1,61 @@
+# TASK 7 — Dashboard, Integração com API e Notificações
+
+Sétima e última fase de construção. Entrega o dashboard, a sincronização de resultados reais e os e-mails. Requer as **Tasks 1–6** concluídas.
+
+> **Credenciais (ver `CREDENCIAIS.txt`; vão para o `.env` na Task 8):**
+> - `FOOTBALL_DATA_TOKEN` — token da API, enviado no header `X-Auth-Token`.
+> - E-mail via **servidor iAgente** (SMTP). Enquanto os dados não chegarem, use `MAIL_MAILER=log`.
+
+---
+
+## 1. Dashboard (pós-login)
+
+1. **Ranking — Top 10**: os 10 usuários com mais pontos (nome + pontos + posição), aplicando o **critério de desempate da Task 6**. Destaque a posição do usuário logado mesmo fora do top 10.
+2. **Jogos do dia**: jogos cuja data é **hoje** (times, horário em Brasília, status e resultado se finalizado). Se o usuário tiver palpitado, mostrar o palpite dele.
+3. **Cards de resumo**: total de pontos do usuário, nº de palpites feitos, próximos jogos.
+
+Tudo com Tailwind, responsivo, usando o layout base da Task 2.
+
+---
+
+## 2. Integração com a API football-data.org (resultados reais)
+
+Para os jogos **que já ocorreram**, buscar o resultado real na API:
+
+- Endpoint: `GET https://api.football-data.org/v4/competitions/{id}/matches` (ex.: `/v4/competitions/WC/matches`).
+  Para descobrir o ID/código: `GET /v4/competitions`. A Copa do Mundo é **WC (id 2000)**, temporada 2026.
+- Autenticação via header **`X-Auth-Token`** com o `FOOTBALL_DATA_TOKEN` (lido em `config/services.php` → `services.football_data`).
+- **Filtre** por intervalo de datas/status quando útil (`dateFrom`, `dateTo`, `status`) — não baixe outras competições.
+- **Respeite o rate limit lendo os headers da resposta** (ex.: `X-Requests-Available-Minute`): se zerar, aguarde (free tier ~10 req/min). Implementado no `FootballDataService` (ignorando header vazio).
+- **Service** `FootballDataService` (HTTP client do Laravel, `Http::withHeaders(...)`) consulta as partidas; casa com os jogos locais via `external_id` (= `id` da partida na API).
+- **Artisan Command** `php artisan worldcup:sync-matches` que:
+  - importa/atualiza **times** (por `external_id`, com `tla` e `crest`) e **jogos** (por `external_id`),
+  - mapeia `stage`/`group`/`status`/`utcDate` e o placar (`score.fullTime`),
+  - **ignora** confrontos de mata-mata ainda sem times sorteados,
+  - dispara o **recálculo de pontuação** (Job da Task 6) dos jogos finalizados.
+- Agende o command no **Scheduler** (`routes/console.php`) — a cada 15 min durante o torneio.
+- Trate erros (timeout, rate limit, token inválido) com log, sem quebrar o sistema.
+- O **lançamento manual pelo admin (Task 4)** continua disponível como alternativa/fallback à sincronização automática.
+
+---
+
+## 3. Notificações por e-mail (servidor iAgente)
+
+Use o **servidor de e-mail da iAgente** com **Notifications + Queue** do Laravel:
+
+- **Lembrete de palpite**: avisar quem ainda **não palpitou** um jogo prestes a começar (command agendado no Scheduler).
+- **Resultado lançado**: notificar quando o resultado sair e quantos pontos o usuário fez.
+- **Boas-vindas** no registro (opcional).
+- Envie de forma **assíncrona (queue)**; trate falha/SMTP indisponível com log e retry.
+
+---
+
+## Entregáveis da Task 7
+
+1. Dashboard com Top 10 (com desempate), jogos do dia e cards de resumo.
+2. `FootballDataService` + command `worldcup:sync-matches` (importa times/jogos/resultados) + agendamento, respeitando rate limit.
+3. Notificações por e-mail via iAgente (lembrete e resultado), em fila.
+4. README atualizado (API, fila, scheduler, e-mail).
+5. Testes da sincronização (mapeamento de partidas) e do envio de notificações.
+
+> Concluída a Task 7, o sistema está completo. Prossiga para a **Task 8 (configurar o .env a partir do CREDENCIAIS.txt)**.

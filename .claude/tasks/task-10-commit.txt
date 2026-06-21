@@ -1,0 +1,59 @@
+# TASK 9 — Commit / Versionamento (branch `develop` → merge na `main`)
+
+Versiona o projeto construído nas **Tasks 1–7** e configurado na **Task 8** em um repositório Git. Execute somente após o sistema estar funcionando e o `.env` finalizado.
+
+---
+
+## Pré-requisitos
+
+- `.env` já montado a partir do `CREDENCIAIS.txt` (feito na **Task 8**).
+- **`.env` e `CREDENCIAIS.txt` no `.gitignore`** — não serão commitados.
+
+## Repositório Git
+
+> ⚠️ Use a URL do repositório informada em **`CREDENCIAIS.txt`** (chave `REPOSITORIO_GIT`). Se ainda estiver `<PREENCHER>`, defina antes:
+
+```
+REPOSITORIO_GIT = <COLE_AQUI_A_URL_DO_SEU_REPOSITORIO.git>
+```
+
+**Não faça commit sem antes confirmar a URL acima.**
+
+---
+
+## Fluxo de versionamento
+
+1. **Inicialize o Git** (`git init`) e crie um `.gitignore` adequado para Laravel (ignorar `/vendor`, `/node_modules`, `.env`, `CREDENCIAIS.txt`, `storage/*`, etc.).
+2. **Conecte ao remoto**: `git remote add origin <REPOSITORIO_GIT>`.
+3. Crie a branch **`main`** com o commit inicial e faça o push: `git push -u origin main`.
+4. Crie e mude para a branch **`develop`**: `git checkout -b develop`.
+5. **Faça os commits na branch `develop`**, com mensagens claras em português. Sugestão por fase:
+   - "task 1: criação do projeto Laravel (laravel new: MySQL, Pest)"
+   - "task 2: base, auth (Breeze) e permissões (spatie)"
+   - "task 3: modelo de dados + seeds da Copa 2026"
+   - "task 4: painel admin + auditoria de resultados"
+   - "task 5: palpites do usuário com antifraude"
+   - "task 6: pontuação em fila + ranking com desempate"
+   - "task 7: dashboard, API football-data e e-mails (iAgente)"
+6. Push da branch: `git push -u origin develop`.
+7. Ao concluir, **merge da `develop` na `main`**:
+   ```
+   git checkout main
+   git merge --no-ff develop -m "merge develop -> main: sistema de bolão Copa 2026"
+   git push origin main
+   ```
+8. Garanta que **ambas as branches (`develop` e `main`) estejam no remoto** e que a `main` contenha a versão final e funcional.
+
+> **Não** versione `.env`, `CREDENCIAIS.txt` nem segredos. Use apenas o `.env.example`. Estes arquivos de task (que contêm o token) **não devem** ir para um repositório público.
+
+---
+
+## Entregáveis da Task 9
+
+1. Repositório Git inicializado e conectado ao remoto informado.
+2. `.gitignore` aplicado (sem `.env`, `CREDENCIAIS.txt`, `vendor`, `node_modules`).
+3. Commits de desenvolvimento na `develop`.
+4. Merge final da `develop` na `main`.
+5. Ambas as branches enviadas (push) para o remoto.
+
+> Concluída a Task 9, prossiga para a **Task 10 (deploy — preparar a VPS e o SSH)**.

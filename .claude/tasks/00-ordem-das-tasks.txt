@@ -1,0 +1,30 @@
+# Sistema de Bolão da Copa do Mundo 2026 — Ordem das Tasks
+
+Execute no Claude Code na ordem abaixo. Cada task depende das anteriores.
+
+## Antes de tudo
+- CREDENCIAIS.txt — arquivo central das credenciais, separado em **DESENVOLVIMENTO (DEV_*)**, **PRODUÇÃO (PROD_*)**, **SERVIDOR/SSH** e **GIT**. Antes da Task 1, preencha pelo menos o **banco dev (DEV_DB_*)** e o **super-admin dev (DEV_SEED_SUPERADMIN_*)** para o projeto rodar. O restante pode ser preenchido **enquanto as Tasks 1–7 rodam**; a Task 9 monta o `.env` local (dev) e a Task 12 monta o `.env` de produção na VPS.
+
+## Construção (7 fases + tema visual)
+1.  task-1-criar-projeto.txt              — criar o projeto Laravel (laravel new: sem starter kit, Pest, MySQL).
+2.  task-2-base-auth-permissoes.txt       — Tailwind, auth (Breeze), papéis/permissões (spatie), layout base, fila.
+3.  task-3-modelo-dados-seeds.txt         — Migrations/models (teams, games, bets) + seeds da Copa 2026 (48 times, 72 jogos).
+4.  task-4-admin-auditoria.txt            — CRUD de times/jogos, lançar resultado, auditoria.
+5.  task-5-palpites-antifraude.txt        — Palpites do usuário, trava por horário, privacidade dos palpites.
+6.  task-6-pontuacao-fila-ranking.txt     — Pontuação (idempotente, em fila) + ranking com desempate.
+7.  task-7-dashboard-api-notificacoes.txt — Dashboard (Top 10 + jogos do dia), API football-data, e-mails (iAgente).
+8.  task-8-tema-brasil.txt                — Tema visual Brasil: verde/amarelo/azul, logo SVG e favicon para claro e escuro.
+
+## Configuração e versionamento
+9.  task-9-configurar-env.txt    — ler o CREDENCIAIS.txt (DEV) e montar/validar o `.env` local.
+10. task-10-commit.txt           — git: commits na branch develop e merge na main (URL do repo no CREDENCIAIS.txt).
+
+## Deploy na VPS da Hostinger (3 fases)
+11. task-11-deploy-vps-ssh.txt   — preparar a VPS (requisitos) + SSH PC→VPS e VPS→GitHub.
+12. task-12-deploy-app.txt       — clonar a main, instalar deps, `.env` de PRODUÇÃO (PROD_*), migrations.
+13. task-13-deploy-cron-jobs.txt — cron (scheduler), filas com Supervisor (jobs) e rotina de atualização.
+
+## Observações importantes
+- Credenciais centralizadas em CREDENCIAIS.txt: DEV vai para o `.env` local (Task 9); PROD vai para o `.env` da VPS (Task 12). NÃO confundir os dois.
+- NÃO commitar segredos: `.env` e CREDENCIAIS.txt no `.gitignore`.
+- CREDENCIAIS.txt contém token da API, senha de SSH e senhas de banco — **não publique** este arquivo nem as tasks em repositório público.

@@ -1,0 +1,130 @@
+# TASK 11 — Deploy (2/3): Publicar a aplicação na VPS
+
+Segunda fase de deploy. Clona o projeto da branch `main` via SSH, instala dependências, cria o `.env` de **produção** e roda as migrations. Requer a **Task 10** concluída.
+
+> **Credenciais:** seções **COMUM** + **PRODUÇÃO** (`PROD_*`) e **SERVIDOR/VPS** + **GIT** do `CREDENCIAIS.txt`.
+> ⚠️ **Use SOMENTE as credenciais de PRODUÇÃO (`PROD_*`).** No `.env` da VPS as chaves vão **sem o prefixo** (ex.: `PROD_DB_PASSWORD` → `DB_PASSWORD`, `PROD_APP_URL` → `APP_URL`, `PROD_MAIL_*` → `MAIL_*`).
+
+---
+
+## 1. Clonar o projeto (branch main via SSH)
+
+Acessar a VPS e ir ao diretório do projeto (`VPS_PROJECT_PATH`):
+```
+ssh root@76.13.239.186
+cd /home/celke-copa/htdocs/copa.celke.uno
+```
+Clonar a branch de produção (`DEPLOY_BRANCH=main`) usando a URL **SSH** (`REPOSITORIO_GIT_SSH`):
+```
+git clone -b main git@github.com:usuario-ou-org/repositorio.git .
+```
+Marcar o diretório como seguro para o Git:
+```
+git config --global --add safe.directory /home/celke-copa/htdocs/copa.celke.uno
+```
+
+---
+
+## 2. Criar o `.env` de produção
+
+```
+cp .env.example .env
+nano .env
+```
+Preencher a partir do `CREDENCIAIS.txt` (**COMUM + PRODUÇÃO**). Valores-chave:
+```
+APP_NAME="Bolão Copa 2026"
+APP_ENV=production
+APP_KEY=
+APP_DEBUG=false
+APP_TIMEZONE=UTC
+APP_URL=https://copa.celke.uno
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=copa
+DB_USERNAME=<PROD_DB_USERNAME>
+DB_PASSWORD=<PROD_DB_PASSWORD>
+
+SESSION_DRIVER=database
+QUEUE_CONNECTION=database
+
+FOOTBALL_DATA_TOKEN=<FOOTBALL_DATA_TOKEN>
+
+# E-mail iAgente (produção)
+MAIL_MAILER=smtp
+MAIL_HOST=<PROD_MAIL_HOST>
+MAIL_PORT=<PROD_MAIL_PORT>
+MAIL_USERNAME=<PROD_MAIL_USERNAME>
+MAIL_PASSWORD=<PROD_MAIL_PASSWORD>
+MAIL_ENCRYPTION=<PROD_MAIL_ENCRYPTION>
+MAIL_FROM_ADDRESS=<PROD_MAIL_FROM_ADDRESS>
+MAIL_FROM_NAME="Bolão Copa 2026"
+```
+> Salvar no nano: `Ctrl + O`, Enter; sair: `Ctrl + X`.
+> 💡 Dica de teste: se quiser validar o carregamento antes do banco, comente as linhas `DB_*` e use `SESSION_DRIVER=file`; depois reverta para `database`.
+
+---
+
+## 3. Instalar dependências e gerar a build
+
+Dependências do PHP (otimizado para produção):
+```
+composer install --no-dev --optimize-autoloader
+```
+Dependências do Node.js e build de produção (**não** use `npm run dev` no servidor):
+```
+npm install
+npm run build
+```
+Se aparecer "sh: 1: vite: not found", confirme o Node.js (Task 10) e:
+```
+npx vite --version
+npm run build
+```
+
+---
+
+## 4. Banco de dados, chave e permissões
+
+- Crie a base de dados no MySQL conforme `PROD_DB_DATABASE`/usuário (se ainda não existir).
+
+Gerar a chave da aplicação:
+```
+php artisan key:generate
+```
+Executar as migrations e os seeds em produção (use `--force`; **não** use `migrate:fresh` em produção com dados reais):
+```
+php artisan migrate --force
+php artisan db:seed --force
+```
+Ajustar a propriedade do diretório (`VPS_LINUX_USER`):
+```
+sudo chown -R celke-copa:celke-copa /home/celke-copa/htdocs/copa.celke.uno
+```
+
+---
+
+## 5. Cache de produção e Nginx
+
+```
+php artisan config:clear
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+sudo systemctl restart nginx
+```
+Acessar e validar: `https://copa.celke.uno`
+
+---
+
+## Entregáveis da Task 11
+
+1. Projeto clonado da branch `main` na VPS.
+2. `.env` de **produção** preenchido com as credenciais `PROD_*` (diferente do dev).
+3. Dependências instaladas + build gerada.
+4. `APP_KEY` gerada, migrations + seed executados, permissões ajustadas.
+5. Site acessível em `https://copa.celke.uno`.
+
+> Concluída a Task 11, prossiga para a **Task 12 (cron, filas e atualizações)**.
