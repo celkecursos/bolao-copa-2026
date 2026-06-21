@@ -14,7 +14,7 @@
 # #####################################################################
 #  CREDENCIAIS COMUM (vale para DEV e PRODUÇÃO)
 # #####################################################################
-APP_NAME=
+APP_NAME="Bolão Copa 2026"
 APP_TIMEZONE=UTC
 QUEUE_CONNECTION=database
 
@@ -35,9 +35,9 @@ DEV_DB_USERNAME=
 DEV_DB_PASSWORD=
 
 # --- Super-admin (seeder) ---
-DEV_SEED_SUPERADMIN_NAME=
-DEV_SEED_SUPERADMIN_EMAIL=
-DEV_SEED_SUPERADMIN_PASSWORD=
+DEV_SEED_SUPERADMIN_NAME="Super Admin"
+DEV_SEED_SUPERADMIN_EMAIL=superadmin@celke.uno
+DEV_SEED_SUPERADMIN_PASSWORD=123456A#b
 
 
 # #####################################################################
@@ -98,9 +98,9 @@ VPS_SSH_USER=root
 VPS_IP=
 VPS_SSH_PASSWORD=
 
-VPS_DOMAIN=
-VPS_LINUX_USER=
-VPS_PROJECT_PATH=
+VPS_DOMAIN=(Exemplo: copa.celke.uno)
+VPS_LINUX_USER=(Exemplo: celke-copa)
+VPS_PROJECT_PATH=(Exemplo: /home/celke-copa/htdocs/copa.celke.uno)
 VPS_PHP_BIN=/usr/bin/php8.3
 
 SSH_KEY_EMAIL=
@@ -110,5 +110,5 @@ SSH_KEY_EMAIL=
 #  GIT / GITHUB (NÃO vai no .env)
 # #####################################################################
 REPOSITORIO_GIT=
-REPOSITORIO_GIT_SSH=
+REPOSITORIO_GIT_SSH=(Exemplo: git@github.com:usuario-ou-org/repositorio.git)
 DEPLOY_BRANCH=main
