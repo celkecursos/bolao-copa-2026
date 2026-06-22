@@ -9,16 +9,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
+# First-time setup (install deps, copy .env, generate key, migrate, npm build)
+composer setup
+
 # Full dev environment (server + queue + vite concurrently)
 composer dev
 
-# Fresh DB with roles, 48 teams, 72 games, demo bets
+# Fresh DB with roles, 48 teams, 72 games, demo bets (development)
 php artisan migrate:fresh --seed
+
+# Production seeding: roles + real games from API + demo bets
+php artisan db:seed --class=ProductionSeeder --force
 
 # Run test suite (Pest) — requires copa_test DB in MySQL
 composer test
 php artisan test
-php artisan test --filter ScoringTest   # single test file
+php artisan test --filter ScoringTest   # single test class
 
 # Code style (Laravel Pint)
 ./vendor/bin/pint
@@ -29,7 +35,16 @@ php artisan worldcup:sync-matches           # import/update from football-data.o
 php artisan matches:send-reminders          # email users who haven't bet
 php artisan schedule:run                    # run all scheduled tasks
 php artisan queue:work                      # process scoring jobs and emails
+php artisan pail                            # real-time log tailing (dev)
 ```
+
+## Key env vars
+
+| Variable | Purpose |
+|---|---|
+| `FOOTBALL_DATA_TOKEN` | API token for football-data.org (required for `worldcup:sync-matches`) |
+| `SEED_SUPERADMIN_EMAIL` / `_PASSWORD` | Credentials for the super-admin created by `RolesAndPermissionsSeeder` |
+| `DB_DATABASE` | Main DB (`copa` by default); test DB is always `copa_test` |
 
 ## Testing
 
@@ -79,6 +94,19 @@ Three roles: `super-admin`, `admin`, `user`. Permissions: `teams.manage`, `games
 
 `Gate::before` in `AppServiceProvider` lets `super-admin` bypass all permission checks. Admin role gets manage + result permissions; user role gets only `bets.create`.
 
+### Routes
+
+- `/` → welcome (public)
+- `/dashboard` → `DashboardController` (single-action, `auth` only)
+- `/palpites` → `BetController` (`auth`, list and submit bets)
+- `/admin/teams`, `/admin/games` → resource controllers gated by permissions
+- `/admin/games/{game}/resultado` → result form (permission: `games.set-result`)
+- `/admin/usuarios` → `UserRoleController` (role: `super-admin` only)
+
+### Models
+
+`Game` uses `SoftDeletes` — always chain `withTrashed()` if you need deleted records. The `external_id` column stores the football-data.org match ID used for upsert deduplication during sync. Game `status` values: `scheduled`, `live`, `finished`. Knockout stages are any `stage` other than `group` (`Game::STAGES` lists all stages in order).
+
 ### Bet lifecycle
 
 1. User submits a bet via `BetController@store` (requires `bets.create` permission).
@@ -104,7 +132,7 @@ All rules are configurable in `config/bolao.php`.
 
 ### Ranking & Dashboard
 
-`RankingService` computes top-10 with tiebreaking. `DashboardController` (single-action) loads today's games and ranking summary.
+`RankingService::ranking()` returns the full leaderboard (all users) ordered by: (1) total points, (2) exact-score count, (3) winner-count, (4) user ID. `topAndCurrent(?int $userId, int $limit)` slices the top N and also returns the authenticated user's row even if they're outside the top. `DashboardController` (single-action) loads today's games and calls `topAndCurrent` for the sidebar ranking.
 
 ### Key config
 
@@ -118,6 +146,14 @@ Dates are stored in **UTC** and displayed in `America/Sao_Paulo`.
 ### Notifications & Queue
 
 `BetReminderNotification` and `ResultPostedNotification` are queued via the `database` driver. In production, `php artisan queue:work` must run as a daemon (or via scheduler/supervisor).
+
+### Policies
+
+`GamePolicy` and `TeamPolicy` gate the admin resource controllers using the permission system. Laravel auto-discovers them via model naming convention, so no explicit `Gate::policy()` registration is needed.
+
+### Scheduler
+
+Defined in `routes/console.php`. `worldcup:sync-matches` runs every 15 minutes; `matches:send-reminders` runs hourly. In production, `php artisan schedule:run` must be called every minute via cron.
 
 ### Auditing
 

@@ -10,9 +10,9 @@ Primeira das 3 fases de deploy na **VPS da Hostinger**. Prepara o servidor (requ
 
 ## 1. Conectar o PC ao servidor com SSH
 
-Criar a chave SSH (pública e privada) no PC, usando `SSH_KEY_EMAIL`:
+Criar a chave SSH (pública e privada) no PC, usando `SSH_KEY_EMAIL` do `CREDENCIAIS.txt`:
 ```
-ssh-keygen -t rsa -b 4096 -C "cesar@celke.com.br"
+ssh-keygen -t rsa -b 4096 -C "<SSH_KEY_EMAIL>"
 ```
 Local onde a chave é criada (Windows):
 ```
@@ -30,7 +30,7 @@ Adicionar a chave pública à VPS — **duas formas** (use qualquer uma):
 
 **Forma B — via terminal** (se já tiver acesso com senha):
 ```
-ssh root@76.13.239.186
+ssh <VPS_SSH_USER>@<VPS_IP>
 mkdir -p ~/.ssh && chmod 700 ~/.ssh
 echo "CONTEÚDO_DO_id_rsa.pub" >> ~/.ssh/authorized_keys
 chmod 600 ~/.ssh/authorized_keys
@@ -38,10 +38,10 @@ chmod 600 ~/.ssh/authorized_keys
 
 Testar a conexão (deve conectar sem pedir senha, apenas a passphrase da chave se houver):
 ```
-ssh root@76.13.239.186
+ssh <VPS_SSH_USER>@<VPS_IP>
 ```
 
-> 💡 **VS Code:** instale a extensão *Remote – SSH*, adicione o host `root@76.13.239.186` e conecte pelo painel SSH. Facilita a edição de arquivos na VPS.
+> 💡 **VS Code:** instale a extensão *Remote – SSH*, adicione o host `<VPS_SSH_USER>@<VPS_IP>` e conecte pelo painel SSH. Facilita a edição de arquivos na VPS.
 
 ---
 
@@ -77,9 +77,9 @@ sudo apt install -y supervisor
 
 ## 3. Conectar a VPS ao GitHub via SSH
 
-Gerar a chave SSH **no servidor** (`SSH_KEY_EMAIL`):
+Gerar a chave SSH **no servidor** (use `SSH_KEY_EMAIL` do `CREDENCIAIS.txt`):
 ```
-ssh-keygen -t rsa -b 4096 -C "cesar@celke.com.br"
+ssh-keygen -t rsa -b 4096 -C "<SSH_KEY_EMAIL>"
 ```
 Imprimir a chave pública gerada:
 ```
