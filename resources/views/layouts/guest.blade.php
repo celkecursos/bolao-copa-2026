@@ -19,6 +19,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans text-gray-900 antialiased">
+        <x-educational-banner />
         <div class="absolute top-4 right-4 bg-[#009C3B] dark:bg-[#002776] rounded-lg">
             <x-theme-toggle />
         </div>

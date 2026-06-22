@@ -12,6 +12,8 @@
 </head>
 <body class="font-sans antialiased bg-[#F0FAF4] dark:bg-[#001233] text-gray-900 dark:text-gray-100">
 
+<x-educational-banner />
+
 {{-- ═══════════════════════════════════════════════════════
      NAVBAR
 ═══════════════════════════════════════════════════════ --}}
