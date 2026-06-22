@@ -1,0 +1,52 @@
+# TASK 14 — Banner de Aviso Educacional
+
+Adicionar uma barra fixa no topo de todas as páginas do sistema informando que o projeto foi desenvolvido exclusivamente para fins educacionais, sem objetivo de uso em produção. Isso evita que o Bolão da Copa seja interpretado como sistema de jogo de azar.
+
+---
+
+## 1. Criar o componente reutilizável
+
+Criar o arquivo `resources/views/components/educational-banner.blade.php`:
+
+```blade
+<div class="w-full bg-[#002776] dark:bg-[#001a50] text-white text-center text-xs sm:text-sm py-2 px-4">
+    <span class="font-semibold">⚠️ Projeto educacional:</span>
+    desenvolvido no tutorial <em>"Como criar sistema com IA Claude"</em> — não se destina ao uso em produção.
+</div>
+```
+
+---
+
+## 2. Incluir nos layouts
+
+**`resources/views/layouts/app.blade.php`** — logo após a tag `<body`:
+```blade
+<x-educational-banner />
+```
+
+**`resources/views/layouts/guest.blade.php`** — logo após a tag `<body`:
+```blade
+<x-educational-banner />
+```
+
+**`resources/views/welcome.blade.php`** — logo após a tag `<body` (antes da navbar):
+```blade
+<x-educational-banner />
+```
+
+---
+
+## 3. Rebuild dos assets
+
+Após as alterações nas views:
+```
+npm run build
+```
+
+---
+
+## Entregáveis da Task 14
+
+1. Partial `educational-banner.blade.php` criado com texto e estilo Brasil.
+2. Banner visível em todas as páginas: dashboard, palpites, admin, login, registro e welcome.
+3. Responsivo e compatível com tema claro/escuro.

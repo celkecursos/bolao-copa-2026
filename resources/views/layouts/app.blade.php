@@ -19,6 +19,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans antialiased">
+        <x-educational-banner />
         <div class="min-h-screen bg-[#F0FAF4] dark:bg-[#001233]">
             @include('layouts.navigation')
 
