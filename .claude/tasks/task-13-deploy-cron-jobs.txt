@@ -17,9 +17,9 @@ Adicionar ao crontab (rodar o scheduler a cada minuto):
 ```
 crontab -e
 ```
-Adicionar a linha abaixo — use `VPS_PHP_BIN` e `VPS_PROJECT_PATH`:
+Adicionar a linha abaixo — use `VPS_PHP_BIN` e `VPS_PROJECT_PATH` do `CREDENCIAIS.txt`:
 ```
-* * * * * cd /home/celke-copa/htdocs/copa.celke.uno && /usr/bin/php8.3 artisan schedule:run >> /dev/null 2>&1
+* * * * * cd <VPS_PROJECT_PATH> && <VPS_PHP_BIN> artisan schedule:run >> /dev/null 2>&1
 ```
 
 Verificar o crontab salvo:
@@ -33,7 +33,6 @@ Referência do formato cron:
 │ │ │ │ │
 │ │ │ │ └── Dia da semana (0-7)
 │ │ │ └──── Mês (1-12)
-│ │ └────── Dia do mês (1-31)
 │ └──────── Hora (0-23)
 └────────── Minuto (0-59)
 ```
@@ -44,11 +43,11 @@ Referência do formato cron:
 
 Garanta `QUEUE_CONNECTION=database` no `.env` (já definido na Task 12). Os Jobs de recálculo de pontuação (Task 6) e e-mails (Task 7) rodam pela fila.
 
-Criar o arquivo de log antes (evita erro de spawn no Supervisor):
+Criar o arquivo de log antes (evita erro de spawn no Supervisor) — use `VPS_PROJECT_PATH` e `VPS_LINUX_USER` do `CREDENCIAIS.txt`:
 ```
-mkdir -p /home/celke-copa/htdocs/copa.celke.uno/storage/logs
-touch /home/celke-copa/htdocs/copa.celke.uno/storage/logs/laravel-worker.log
-chown celke-copa:celke-copa /home/celke-copa/htdocs/copa.celke.uno/storage/logs/laravel-worker.log
+mkdir -p <VPS_PROJECT_PATH>/storage/logs
+touch <VPS_PROJECT_PATH>/storage/logs/laravel-worker.log
+chown <VPS_LINUX_USER>:<VPS_LINUX_USER> <VPS_PROJECT_PATH>/storage/logs/laravel-worker.log
 ```
 
 Criar o arquivo de configuração do Supervisor:
@@ -56,17 +55,17 @@ Criar o arquivo de configuração do Supervisor:
 nano /etc/supervisor/conf.d/laravel-worker.conf
 ```
 
-Conteúdo (ajuste `VPS_PHP_BIN`, `VPS_PROJECT_PATH` e `VPS_LINUX_USER`):
+Conteúdo (ajuste `VPS_PHP_BIN`, `VPS_PROJECT_PATH` e `VPS_LINUX_USER` do `CREDENCIAIS.txt`):
 ```
 [program:laravel-worker]
 process_name=%(program_name)s_%(process_num)02d
-command=/usr/bin/php8.3 /home/celke-copa/htdocs/copa.celke.uno/artisan queue:work --sleep=3 --tries=3
+command=<VPS_PHP_BIN> <VPS_PROJECT_PATH>/artisan queue:work --sleep=3 --tries=3
 autostart=true
 autorestart=true
-user=celke-copa
+user=<VPS_LINUX_USER>
 numprocs=1
 redirect_stderr=true
-stdout_logfile=/home/celke-copa/htdocs/copa.celke.uno/storage/logs/laravel-worker.log
+stdout_logfile=<VPS_PROJECT_PATH>/storage/logs/laravel-worker.log
 ```
 
 Iniciar e aplicar a configuração:
@@ -104,15 +103,15 @@ git merge develop
 git push origin main
 ```
 
-Na VPS:
+Na VPS (use `VPS_SSH_USER`, `VPS_IP` e `VPS_PROJECT_PATH` do `CREDENCIAIS.txt`):
 ```
-ssh root@76.13.239.186
-cd /home/celke-copa/htdocs/copa.celke.uno
+ssh <VPS_SSH_USER>@<VPS_IP>
+cd <VPS_PROJECT_PATH>
 git pull
 composer install --no-dev --optimize-autoloader
 npm install
 npm run build
-chown -R celke-copa:celke-copa /home/celke-copa/htdocs/copa.celke.uno
+chown -R <VPS_LINUX_USER>:<VPS_LINUX_USER> <VPS_PROJECT_PATH>
 /usr/bin/php8.3 artisan migrate --force
 /usr/bin/php8.3 artisan optimize:clear
 /usr/bin/php8.3 artisan config:cache

@@ -5,31 +5,31 @@ Segunda fase de deploy. Clona o projeto da branch `main` via SSH, instala depend
 > **Credenciais:** seções **COMUM** + **PRODUÇÃO** (`PROD_*`) e **SERVIDOR/VPS** + **GIT** do `CREDENCIAIS.txt`.
 > ⚠️ **Use SOMENTE as credenciais de PRODUÇÃO (`PROD_*`).** No `.env` da VPS as chaves vão **sem o prefixo** (ex.: `PROD_DB_PASSWORD` → `DB_PASSWORD`).
 >
-> ⚠️ **Senhas com `#`:** no `.env`, valores com `#` devem estar entre aspas duplas, caso contrário o `#` é tratado como comentário e a senha fica truncada. Exemplo: `DB_PASSWORD="58s6f2a8#R4s3v82e"`.
+> ⚠️ **Senhas com `#`:** no `.env`, valores com `#` devem estar entre aspas duplas, caso contrário o `#` é tratado como comentário e a senha fica truncada. Exemplo: `DB_PASSWORD="<senha_com_cerquilha>"`.
 
 ---
 
 ## 1. Clonar o projeto (branch main via SSH)
 
-Acessar a VPS e ir ao diretório do projeto (`VPS_PROJECT_PATH`):
+Acessar a VPS e ir ao diretório do projeto (use `VPS_SSH_USER`, `VPS_IP` e `VPS_PROJECT_PATH` do `CREDENCIAIS.txt`):
 ```
-ssh root@76.13.239.186
-cd /home/celke-copa/htdocs/copa.celke.uno
+ssh <VPS_SSH_USER>@<VPS_IP>
+cd <VPS_PROJECT_PATH>
 ```
 
 Se o diretório já tiver arquivos de um teste anterior, limpar (cuidado — apaga tudo):
 ```
-rm -rf /home/celke-copa/htdocs/copa.celke.uno/{*,.*} 2>/dev/null; ls -la
+rm -rf <VPS_PROJECT_PATH>/{*,.*} 2>/dev/null; ls -la
 ```
 
-Clonar a branch de produção (`DEPLOY_BRANCH=main`) usando a URL **SSH** (`REPOSITORIO_GIT_SSH`):
+Clonar a branch de produção usando `DEPLOY_BRANCH` e `REPOSITORIO_GIT_SSH` do `CREDENCIAIS.txt`:
 ```
-git clone -b main git@github.com:celkecursos/bolao-copa-2026.git .
+git clone -b <DEPLOY_BRANCH> <REPOSITORIO_GIT_SSH> .
 ```
 
-Marcar o diretório como seguro para o Git:
+Marcar o diretório como seguro para o Git (use `VPS_PROJECT_PATH` do `CREDENCIAIS.txt`):
 ```
-git config --global --add safe.directory /home/celke-copa/htdocs/copa.celke.uno
+git config --global --add safe.directory <VPS_PROJECT_PATH>
 ```
 
 ---
@@ -48,22 +48,22 @@ APP_ENV=production
 APP_KEY=
 APP_DEBUG=false
 APP_TIMEZONE=UTC
-APP_URL=https://copa.celke.uno
+APP_URL=<PROD_APP_URL>
 
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_DATABASE=copa
 DB_USERNAME=copa
-DB_PASSWORD="58s6f2a8#R4s3v82e"
+DB_PASSWORD="<PROD_DB_PASSWORD>"
 
 SESSION_DRIVER=database
 QUEUE_CONNECTION=database
 
 # Super-admin criado pelo seeder (RolesAndPermissionsSeeder)
 SEED_SUPERADMIN_NAME="Super Admin"
-SEED_SUPERADMIN_EMAIL=cesar@celke.com.br
-SEED_SUPERADMIN_PASSWORD="123456A#b"
+SEED_SUPERADMIN_EMAIL=<PROD_SEED_SUPERADMIN_EMAIL>
+SEED_SUPERADMIN_PASSWORD="<PROD_SEED_SUPERADMIN_PASSWORD>"
 
 # API de resultados — football-data.org
 FOOTBALL_DATA_TOKEN=<FOOTBALL_DATA_TOKEN>
@@ -124,9 +124,9 @@ Executar o **seed de produção** (importa jogos reais da API + cria palpites de
 >
 > **Não use `WorldCup2026Seeder` em produção** — ele insere jogos fictícios. Em desenvolvimento use `php artisan migrate:fresh --seed` (chama `DatabaseSeeder`, que inclui o seeder fictício).
 
-Ajustar a propriedade do diretório (`VPS_LINUX_USER`):
+Ajustar a propriedade do diretório (use `VPS_LINUX_USER` e `VPS_PROJECT_PATH` do `CREDENCIAIS.txt`):
 ```
-chown -R celke-copa:celke-copa /home/celke-copa/htdocs/copa.celke.uno
+chown -R <VPS_LINUX_USER>:<VPS_LINUX_USER> <VPS_PROJECT_PATH>
 chmod -R 775 storage bootstrap/cache
 ```
 
@@ -141,7 +141,7 @@ chmod -R 775 storage bootstrap/cache
 systemctl restart nginx
 ```
 
-Acessar e validar: `https://copa.celke.uno`
+Acessar e validar: `<PROD_APP_URL>`
 
 ---
 
@@ -172,6 +172,6 @@ Se `worldcup:sync-matches` retornar "Nenhuma partida retornada", o token pode es
 3. Dependências instaladas + build gerada.
 4. `APP_KEY` gerada, migrations executadas, `ProductionSeeder` rodado (jogos reais + palpites demo).
 5. Permissões ajustadas, cache gerado, nginx reiniciado.
-6. Site acessível em `https://copa.celke.uno`.
+6. Site acessível em `<PROD_APP_URL>`.
 
 > Concluída a Task 12, prossiga para a **Task 13 (cron, filas e atualizações)**.
